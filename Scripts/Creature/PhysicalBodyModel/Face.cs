@@ -1,13 +1,17 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VRM;
 
 namespace InteraWare {
 
     public class Face : MonoBehaviour {
         public Body body = null;
-        public GameObject eye = null;
+        // public GameObject eye = null;
 
+        public VRMBlendShapeProxy vrmBlendShapeProxy;
+
+        /*
         public GameObject leftLowerEye = null;
         public GameObject leftUpperEye = null;
         public GameObject rightLowerEye = null;
@@ -24,6 +28,7 @@ namespace InteraWare {
         public Vector3 upperLimitMax = new Vector3(+0.05f, +0.05f, 0.01f);
 
         // ----- ----- ----- ----- -----
+        */
 
         public float blinkClose = 0.0f;
         public float smileClose = 0.0f;
@@ -32,11 +37,14 @@ namespace InteraWare {
 
         public GameObject eyeBlinkTarget = null;
         public GameObject eyeSmileTarget = null;
+
+        /*
         public GameObject eyeMeshControllerObject = null;
         [HideInInspector]
         public MeshController eyeSmileMeshLeft = null;
         [HideInInspector]
         public MeshController eyeSmileMeshRight = null;
+        */
 
         // ----- ----- ----- ----- -----
 
@@ -46,6 +54,7 @@ namespace InteraWare {
         private Vector3 rightUpperEyeBasePos = new Vector3();
 
         void Start() {
+            /*
             leftLowerEyeBasePos = leftLowerEye.transform.localPosition;
             leftUpperEyeBasePos = leftUpperEye.transform.localPosition;
             rightLowerEyeBasePos = rightLowerEye.transform.localPosition;
@@ -65,13 +74,21 @@ namespace InteraWare {
                     }
                 }
             }
+            */
         }
 
         void FixedUpdate() {
-            MoveEyelidByEyeMovement();
+            if (eyeBlinkTarget != null) {
+                blinkClose = eyeBlinkTarget.transform.localPosition.y;
+            }
+            if (vrmBlendShapeProxy != null) {
+                vrmBlendShapeProxy.ImmediatelySetValue(BlendShapePreset.Blink, blinkClose);
+            }
+
         }
 
         void MoveEyelidByEyeMovement() {
+            /*
             if (body != null && eye != null) {
                 var eyeRotationL = Quaternion.Inverse(body["Head"].gameObject.transform.rotation) * body["LeftEye"].gameObject.transform.rotation;
                 var eyeDirectionL = eyeRotationL * Vector3.forward;
@@ -158,6 +175,7 @@ namespace InteraWare {
                     eyeSmileMeshRight.SetBlendShapeWeight(0, smileClose * 100);
                 }
             }
+            */
         }
     }
 
