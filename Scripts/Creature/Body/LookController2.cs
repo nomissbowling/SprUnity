@@ -114,79 +114,81 @@ public class LookController2 : LookController {
     }
 
     void Update() {
-        if (Input.GetKeyDown(KeyCode.Z)) {
-            manualEye = true;
-            manualControlTarget = ManualControlTarget.Eye;
-        }
-        if (Input.GetKeyDown(KeyCode.X)) {
-            manualHead = true;
-            manualControlTarget = ManualControlTarget.Head;
-        }
-
-        if (Input.GetKeyDown(KeyCode.A)) {
-            manualEye = false;
-        }
-        if (Input.GetKeyDown(KeyCode.S)) {
-            manualHead = false;
-        }
-
-        // --
-
-        float moveAngle = Time.deltaTime * 90.0f;
-
-        if (Input.GetKey(KeyCode.LeftArrow)) {
-            if (manualControlTarget == ManualControlTarget.Eye) {
-                manualEyeAngle.y += moveAngle;
-            } else {
-                manualHeadAngle.y += moveAngle;
+        if (KeyControl.IsEnabled()) {
+            if (Input.GetKeyDown(KeyCode.Z)) {
+                manualEye = true;
+                manualControlTarget = ManualControlTarget.Eye;
             }
-        }
-        if (Input.GetKey(KeyCode.RightArrow)) {
-            if (manualControlTarget == ManualControlTarget.Eye) {
-                manualEyeAngle.y -= moveAngle;
-            } else {
-                manualHeadAngle.y -= moveAngle;
+            if (Input.GetKeyDown(KeyCode.X)) {
+                manualHead = true;
+                manualControlTarget = ManualControlTarget.Head;
             }
-        }
-        if (Input.GetKey(KeyCode.UpArrow)) {
-            if (manualControlTarget == ManualControlTarget.Eye) {
-                manualEyeAngle.x -= moveAngle;
-            } else {
-                manualHeadAngle.x -= moveAngle;
-            }
-        }
-        if (Input.GetKey(KeyCode.DownArrow)) {
-            if (manualControlTarget == ManualControlTarget.Eye) {
-                manualEyeAngle.x += moveAngle;
-            } else {
-                manualHeadAngle.x += moveAngle;
-            }
-        }
 
-        // --
+            if (Input.GetKeyDown(KeyCode.A)) {
+                manualEye = false;
+            }
+            if (Input.GetKeyDown(KeyCode.S)) {
+                manualHead = false;
+            }
 
-        if (Input.GetKey(KeyCode.C)) {
-            showDebugText = true;
-            if (Input.GetKey(KeyCode.LeftShift)) {
-                if (debugText != null) {
-                    debugText.gameObject.SetActive(true);
+            // --
+
+            float moveAngle = Time.deltaTime * 90.0f;
+
+            if (Input.GetKey(KeyCode.LeftArrow)) {
+                if (manualControlTarget == ManualControlTarget.Eye) {
+                    manualEyeAngle.y += moveAngle;
+                } else {
+                    manualHeadAngle.y += moveAngle;
                 }
             }
-        }
-        if (Input.GetKey(KeyCode.V)) {
-            showDebugText = false;
-            if (Input.GetKey(KeyCode.LeftShift)) {
-                if (debugText != null) {
-                    debugText.gameObject.SetActive(false);
+            if (Input.GetKey(KeyCode.RightArrow)) {
+                if (manualControlTarget == ManualControlTarget.Eye) {
+                    manualEyeAngle.y -= moveAngle;
+                } else {
+                    manualHeadAngle.y -= moveAngle;
                 }
             }
-        }
+            if (Input.GetKey(KeyCode.UpArrow)) {
+                if (manualControlTarget == ManualControlTarget.Eye) {
+                    manualEyeAngle.x -= moveAngle;
+                } else {
+                    manualHeadAngle.x -= moveAngle;
+                }
+            }
+            if (Input.GetKey(KeyCode.DownArrow)) {
+                if (manualControlTarget == ManualControlTarget.Eye) {
+                    manualEyeAngle.x += moveAngle;
+                } else {
+                    manualHeadAngle.x += moveAngle;
+                }
+            }
 
-        // --
+            // --
 
-        if (Input.GetKey(KeyCode.Alpha3)) {
-            showPanel = !showPanel;
-            if (showPanel == false) { SaveSetting(); }
+            if (Input.GetKey(KeyCode.C)) {
+                showDebugText = true;
+                if (Input.GetKey(KeyCode.LeftShift)) {
+                    if (debugText != null) {
+                        debugText.gameObject.SetActive(true);
+                    }
+                }
+            }
+            if (Input.GetKey(KeyCode.V)) {
+                showDebugText = false;
+                if (Input.GetKey(KeyCode.LeftShift)) {
+                    if (debugText != null) {
+                        debugText.gameObject.SetActive(false);
+                    }
+                }
+            }
+
+            // --
+
+            if (Input.GetKey(KeyCode.Alpha3)) {
+                showPanel = !showPanel;
+                if (showPanel == false) { SaveSetting(); }
+            }
         }
     }
 
