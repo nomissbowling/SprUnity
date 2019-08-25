@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using UnityEngine;
 using SprUnity;
 
@@ -46,6 +47,11 @@ public class LookController2 : LookController {
     enum ManualControlTarget { Eye, Head };
     private ManualControlTarget manualControlTarget = ManualControlTarget.Eye;
 
+    public bool showPanel = false;
+    public float correctionValue = 0.0f;
+    public KeyCode trigger = KeyCode.Alpha3;
+    public string filename = "EyeCalib.txt";
+
     // ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
     // 頭の基準姿勢（サッケードのたびに変化する）
@@ -56,6 +62,8 @@ public class LookController2 : LookController {
 
     // 現在の頭の目標姿勢
     private Quaternion targetHeadRotation;
+
+    private Texture2D menuTexture;
 
     // ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
@@ -69,8 +77,33 @@ public class LookController2 : LookController {
 
     // ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
+    void OnGUI() {
+        if (showPanel) {
+            GUIStyle style = new GUIStyle();
+            style.normal.background = menuTexture;
+            GUI.BeginGroup(new Rect(20, 20, 440, 210), style);
+            GUI.color = Color.black;
+
+            GUI.Label(new Rect(10, 15, 100, 100), "視線キャリブレーション");
+
+            GUI.Label(new Rect(10, 50, 100, 30), "補正量：" + correctionValue.ToString());
+            correctionValue = GUI.HorizontalSlider(new Rect(120, 55, 300, 30), correctionValue, -100, +100);
+
+            GUI.EndGroup();
+        }
+    }
+
     void Start () {
         debugText.gameObject.SetActive(false);
+
+        menuTexture = new Texture2D(16, 16);
+        for (int i = 0; i < menuTexture.height; i++) {
+            for (int j = 0; j < menuTexture.height; j++) {
+                menuTexture.SetPixel(i, j, Color.grey);
+            }
+        }
+
+        Load();
     }
 
     void Update() {
@@ -137,6 +170,14 @@ public class LookController2 : LookController {
                 debugText.gameObject.SetActive(false);
             }
         }
+
+        // -- 
+        if (Input.GetKeyDown(trigger)) {
+            showPanel = !showPanel;
+            if (!showPanel) {
+                Save();
+            }
+        }
     }
 
     void FixedUpdate () {
@@ -175,7 +216,7 @@ public class LookController2 : LookController {
 
                 // キャリブレーション変換
                 float targAngleVertCalib = 1.0f * targAngleVert;
-                float targAngleHorizCalib = 2.1f * targAngleHoriz;
+                float targAngleHorizCalib = 2.1f * targAngleHoriz + correctionValue;
                 targEyeDir = Quaternion.Euler(targAngleVertCalib, targAngleHorizCalib, 0) * Vector3.forward;
 
                 // -- 手動オーバーライド
@@ -272,4 +313,23 @@ public class LookController2 : LookController {
         }
 
 	}
+
+    // ----- ----- ----- ----- -----
+
+    void Load() {
+        FileInfo fileInfo = new FileInfo(Application.dataPath + "/../Settings/" + filename);
+        if (fileInfo.Exists) {
+            StreamReader reader = fileInfo.OpenText();
+            string cv = reader.ReadLine();
+            reader.Close();
+            correctionValue = float.Parse(cv);
+        }
+    }
+
+    void Save() {
+        FileInfo fileInfo = new FileInfo(Application.dataPath + "/../Settings/" + filename);
+        StreamWriter writer = fileInfo.CreateText();
+        writer.WriteLine(correctionValue);
+        writer.Close();
+    }
 }
