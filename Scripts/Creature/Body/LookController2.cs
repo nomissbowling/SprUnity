@@ -73,7 +73,7 @@ public class LookController2 : LookController {
 
     // 手動モードにおける頭の方向
     [HideInInspector]
-    public Vector2 manualHeadAngle = new Vector2(0, 0);
+    public Vector3 manualHeadAngle = new Vector3(0, 0, 0);
 
     // ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
@@ -88,6 +88,9 @@ public class LookController2 : LookController {
 
             GUI.Label(new Rect(10, 50, 100, 30), "補正量：" + correctionValue.ToString());
             correctionValue = GUI.HorizontalSlider(new Rect(120, 55, 300, 30), correctionValue, -100, +100);
+
+            GUI.Label(new Rect(10, 15 + 35 * 2, 100, 30), "目：" + manualEyeAngle.ToString());
+            GUI.Label(new Rect(10, 15 + 35 * 3, 100, 30), "頭：" + manualHeadAngle.ToString());
 
             GUI.EndGroup();
         }
@@ -129,31 +132,37 @@ public class LookController2 : LookController {
 
         if (Input.GetKey(KeyCode.LeftArrow)) {
             if (manualControlTarget == ManualControlTarget.Eye) {
-                manualEyeAngle.y += moveAngle;
+                manualEyeAngle.y = Mathf.Clamp(manualEyeAngle.y + moveAngle, -90, 90);
             } else {
-                manualHeadAngle.y += moveAngle;
+                manualHeadAngle.y = Mathf.Clamp(manualHeadAngle.y + moveAngle, -90, 90);
             }
         }
         if (Input.GetKey(KeyCode.RightArrow)) {
             if (manualControlTarget == ManualControlTarget.Eye) {
-                manualEyeAngle.y -= moveAngle;
+                manualEyeAngle.y = Mathf.Clamp(manualEyeAngle.y - moveAngle, -90, 90);
             } else {
-                manualHeadAngle.y -= moveAngle;
-            }
-        }
-        if (Input.GetKey(KeyCode.UpArrow)) {
-            if (manualControlTarget == ManualControlTarget.Eye) {
-                manualEyeAngle.x -= moveAngle;
-            } else {
-                manualHeadAngle.x -= moveAngle;
+                manualHeadAngle.y = Mathf.Clamp(manualHeadAngle.y - moveAngle, -90, 90);
             }
         }
         if (Input.GetKey(KeyCode.DownArrow)) {
             if (manualControlTarget == ManualControlTarget.Eye) {
-                manualEyeAngle.x += moveAngle;
+                manualEyeAngle.x = Mathf.Clamp(manualEyeAngle.x + moveAngle * 0.5f, -45, 45);
             } else {
-                manualHeadAngle.x += moveAngle;
+                manualHeadAngle.x = Mathf.Clamp(manualHeadAngle.x + moveAngle * 0.5f, -45, 45);
             }
+        }
+        if (Input.GetKey(KeyCode.UpArrow)) {
+            if (manualControlTarget == ManualControlTarget.Eye) {
+                manualEyeAngle.x = Mathf.Clamp(manualEyeAngle.x - moveAngle * 0.5f, -45, 45);
+            } else {
+                manualHeadAngle.x = Mathf.Clamp(manualHeadAngle.x - moveAngle * 0.5f, -45, 45);
+            }
+        }
+        if (Input.GetKey(KeyCode.PageDown)) {
+            manualHeadAngle.z = Mathf.Clamp(manualHeadAngle.z + moveAngle * 0.5f, -45, 45);
+        }
+        if (Input.GetKey(KeyCode.PageUp)) {
+            manualHeadAngle.z = Mathf.Clamp(manualHeadAngle.z - moveAngle * 0.5f, -45, 45);
         }
 
         // --
@@ -214,7 +223,7 @@ public class LookController2 : LookController {
                 float targAngleHoriz = Vector3.SignedAngle(Vector3.forward, targEyeDirHoriz, Vector3.up);
                 debugText.text = targAngleHoriz + ", " + targAngleVert + "\r\n";
 
-                // キャリブレーション変換
+                // キャリブレーション
                 float targAngleVertCalib = 1.0f * targAngleVert;
                 float targAngleHorizCalib = 2.1f * targAngleHoriz + correctionValue;
                 targEyeDir = Quaternion.Euler(targAngleVertCalib, targAngleHorizCalib, 0) * Vector3.forward;
@@ -268,7 +277,7 @@ public class LookController2 : LookController {
 
                 // -- 手動オーバーライド
                 if (manualHead) {
-                    targetHeadRotation = Quaternion.Euler(manualHeadAngle.x, manualHeadAngle.y, 0);
+                    targetHeadRotation = Quaternion.Euler(manualHeadAngle.x, manualHeadAngle.y, manualHeadAngle.z);
                 } else {
                     Vector3 targHeadDirVert = targetHeadRotation * Vector3.forward; targHeadDirVert.x = 0;
                     Vector3 targHeadDirHoriz = targetHeadRotation * Vector3.forward; targHeadDirHoriz.y = 0;
