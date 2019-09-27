@@ -185,7 +185,7 @@ public class LookController2 : LookController {
 
             // --
 
-            if (Input.GetKey(KeyCode.Alpha3)) {
+            if (Input.GetKeyDown(KeyCode.Alpha3)) {
                 showPanel = !showPanel;
                 if (showPanel == false) { SaveSetting(); }
             }
