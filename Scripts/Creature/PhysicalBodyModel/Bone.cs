@@ -47,6 +47,8 @@ namespace InteraWare {
                     initialDamper = hj.phHingeJoint.GetDamper();
                 }
             }
+
+            SetSpringDamperInRatio(new Vector2(1,1));
         }
 
         void OnDrawGizmos() {
@@ -85,8 +87,22 @@ namespace InteraWare {
         // ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
         public void SetSpringDamperInRatio(Vector2 springDamperInRatio) {
+            /**/
             var spring = initialSpring * springDamperInRatio[0];
             var damper = initialDamper * springDamperInRatio[1];
+            /**/
+
+            /*/
+            float k = 0;
+            if (solid != null) { k = Mathf.Clamp01(((float)(solid.treeDepth) - 6.0f) / (21.0f - 6.0f)); }
+            var spring = initialSpring * springDamperInRatio[0];
+            var damper = initialDamper * 1.5f; // ((2.0f - springDamperInRatio[1]) * k + springDamperInRatio[1]);
+            /**/
+
+            /*/
+            var spring = 1e+5;
+            var damper = 1e+3;
+            /**/
 
             if (joint != null) {
                 PHBallJointBehaviour bj = joint as PHBallJointBehaviour;

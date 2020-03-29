@@ -43,6 +43,8 @@ namespace InteraWare {
         // Target Position Output Object. Use this with VRMLookAtHead
         public GameObject eyeTargetOutput = null;
 
+        public EyeController eyeController = null;
+
         public Body body = null;
         public BlinkController blinkController = null;
 
@@ -59,6 +61,8 @@ namespace InteraWare {
 
         public Vector2 uvRatio = new Vector2(0.3f, 0.3f);
 
+        private Vector3 lastTargetPosition = new Vector3();
+
         void Start() {
             initialLocalRot = body["Head"].transform.localRotation;
             initialHeadPose = new Pose(body["Head"].transform.position, body["Head"].transform.rotation);
@@ -68,6 +72,15 @@ namespace InteraWare {
         }
 
         void FixedUpdate() {
+            if (target != null) {
+                if ((target.transform.position - lastTargetPosition).magnitude > 0.2f) {
+                    lastTargetPosition = target.transform.position;
+                    waitTimer = 0;
+                }
+            }
+
+            // ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+
             if (waitTimer > 0) {
                 waitTimer -= Time.fixedDeltaTime;
                 return;
@@ -85,12 +98,16 @@ namespace InteraWare {
             // ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
             // ＜目を動かす＞
 
+            if (eyeController != null) {
+                eyeController.straight = straight;
+            }
+
             // 視線移動量を算出
             Vector3 targEyeDir = (target.transform.position - body["Head"].transform.position).normalized;
             if (targEyeDir.magnitude < 1e-5) { targEyeDir = Vector3.forward; }
 
 			// ストレートモード：モナリザ効果を利用するため、ターゲットがどこにいようと正面を見る
-			if (straight) { targEyeDir = Vector3.forward; }
+			// if (straight) { targEyeDir = Vector3.forward; }
 
             Vector3 currLEyeDir = body["LeftEye"].GetComponent<ReachController>().trajectory.Last().q1 * new Vector3(0, 0, 1);
             Vector3 currREyeDir = body["RightEye"].GetComponent<ReachController>().trajectory.Last().q1 * new Vector3(0, 0, 1);
@@ -121,7 +138,11 @@ namespace InteraWare {
             // marginを考慮した上での頭の目標方向と移動量を計算
             GameObject targetForHead = target;
             Vector3 targHeadDir = (targetForHead.transform.position - body["Head"].transform.position).normalized;
-			targHeadDir.y = Mathf.Clamp (targHeadDir.y, -0.1f, 0.05f); // 上過ぎや下過ぎを見ないようにクランプ
+
+            // 頭の動きを小さくする（LayeredGazer用）
+            targHeadDir.x *= 0.25f;
+
+            targHeadDir.y = Mathf.Clamp (targHeadDir.y, -0.1f, 0.05f); // 上過ぎや下過ぎを見ないようにクランプ
             Vector3 currHeadDir = body["Head"].ikEndEffector.iktarget.GetComponent<ReachController>().trajectory.Last().q1 * new Vector3(0, 0, 1);
             float diffAngleHead = Vector3.Angle(currHeadDir, targHeadDir);
             bool headMove = false;
@@ -162,8 +183,8 @@ namespace InteraWare {
                 }
             }
             // 動作指示
-            body["LeftEye"].GetComponent<ReachController>().AddSubMovement(new Pose(new Vector3(), eyeTargetRotation), new Vector2(1, 1), durationEye, durationEye);
-            body["RightEye"].GetComponent<ReachController>().AddSubMovement(new Pose(new Vector3(), eyeTargetRotation), new Vector2(1, 1), durationEye, durationEye);
+            // body["LeftEye"].GetComponent<ReachController>().AddSubMovement(new Pose(new Vector3(), eyeTargetRotation), new Vector2(1, 1), durationEye, durationEye);
+            // body["RightEye"].GetComponent<ReachController>().AddSubMovement(new Pose(new Vector3(), eyeTargetRotation), new Vector2(1, 1), durationEye, durationEye);
             if (headMove) {
 				// Debug.Log (headTargetPose.ToString() + durationHead);
 				headTargetPose.rotation = Quaternion.Slerp(originRotation, headTargetPose.rotation, stare);
@@ -179,11 +200,22 @@ namespace InteraWare {
             }
 
             //
+            /*
             if (eyeTargetOutput != null) {
                 Vector3 eyeDir = (body["LeftEye"].transform.TransformDirection(Vector3.forward) + body["RightEye"].transform.TransformDirection(Vector3.forward)) * 0.5f;
                 Vector3 eyePos = (body["LeftEye"].transform.position + body["RightEye"].transform.position) * 0.5f;
                 eyeTargetOutput.transform.position = eyePos + eyeDir * 2.0f;
             }
+            */
+
+            if (eyeController != null) {
+                var targEyeDirVert = targEyeDir; targEyeDirVert[0] = 0;
+                var targEyeDirHoriz = targEyeDir; targEyeDirHoriz[1] = 0;
+                float targEyeAngleVert = Vector3.SignedAngle(Vector3.forward, targEyeDirVert, Vector3.right);
+                float targEyeAngleHoriz = Vector3.SignedAngle(Vector3.forward, targEyeDirHoriz, Vector3.up);
+                eyeController.targetAngle = new Vector2(targEyeAngleVert, targEyeAngleHoriz);
+            }
+
 
             // ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 

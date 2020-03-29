@@ -76,6 +76,8 @@ namespace InteraWare {
                         pair.avatarBone.transform.position = pair.bone.solid.transform.position;
                     }
                     pair.avatarBone.transform.rotation = pair.bone.solid.transform.rotation * pair.solidAvatarRelRot;
+                } else if  (pair.label.Contains("Eye")) {
+                    pair.avatarBone.transform.rotation = pair.bone.transform.rotation;
                 }
             }
         }

@@ -61,44 +61,49 @@ public class SubMovement {
 // ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
 public class ReachController : MonoBehaviour {
-	public bool suspend = false;
+    public bool suspend = false;
 
     public PHIKEndEffectorBehaviour ikEndEffector;
     public Queue<SubMovement> trajectory = new Queue<SubMovement>();
-	public Queue<SubMovement> subTrajectory = new Queue<SubMovement>();
+    public Queue<SubMovement> subTrajectory = new Queue<SubMovement>();
     public float currTime = 0.0f;
     public bool local = false;
     public bool noise = false;
 
+    public bool visualize = false;
+
     public List<Bone> changeSpringDamperBones = new List<Bone>();
+
+    private List<GameObject> visualizers = new List<GameObject>();
+    private GameObject posVisualizer = null;
 
     public void Start() {
         trajectory.Clear();
 
-		{
-			SubMovement subMov = new SubMovement ();
-			subMov.p1 = subMov.p0 = transform.position;
-			subMov.q1 = subMov.q0 = transform.rotation;
-			subMov.s1 = subMov.s0 = new Vector2 (1, 1);
-			subMov.t0 = 0.0f;
-			subMov.t1 = 0.0001f;
+        {
+            SubMovement subMov = new SubMovement();
+            subMov.p1 = subMov.p0 = transform.position;
+            subMov.q1 = subMov.q0 = transform.rotation;
+            subMov.s1 = subMov.s0 = new Vector2(1, 1);
+            subMov.t0 = 0.0f;
+            subMov.t1 = 0.0001f;
 
-			trajectory.Enqueue (subMov);
-		}
+            trajectory.Enqueue(subMov);
+        }
 
-		{
-			SubMovement subMov = new SubMovement ();
-			subMov.p1 = subMov.p0 = new Vector3();
-			subMov.q1 = subMov.q0 = Quaternion.identity;
-			subMov.s1 = subMov.s0 = new Vector2 (1, 1);
-			subMov.t0 = 0.0f;
-			subMov.t1 = 0.0001f;
+        {
+            SubMovement subMov = new SubMovement();
+            subMov.p1 = subMov.p0 = new Vector3();
+            subMov.q1 = subMov.q0 = Quaternion.identity;
+            subMov.s1 = subMov.s0 = new Vector2(1, 1);
+            subMov.t0 = 0.0f;
+            subMov.t1 = 0.0001f;
 
-			subTrajectory.Enqueue (subMov);
-		}
+            subTrajectory.Enqueue(subMov);
+        }
     }
 
-	public SubMovement AddSubMovement(Pose pose, Vector2 spring, float completeTime, float duration, bool toSubTrajectory = false) {
+    public SubMovement AddSubMovement(Pose pose, Vector2 spring, float completeTime, float duration, bool toSubTrajectory = false) {
         var subMov = new SubMovement();
 
         subMov.p0 = trajectory.Last().p1;
@@ -124,32 +129,53 @@ public class ReachController : MonoBehaviour {
             }
         }
 
-		if (!toSubTrajectory) {
-        	trajectory.Enqueue(subMov);
-		} else {
-			subTrajectory.Enqueue(subMov);
-		}
+        if (!toSubTrajectory) {
+            trajectory.Enqueue(subMov);
+        } else {
+            subTrajectory.Enqueue(subMov);
+        }
         return subMov;
     }
-	public SubMovement AddSubMovement(PosRot pose, Vector2 spring, float completeTime, float duration, bool toSubTrajectory = false) {
-		return AddSubMovement(new Pose(pose.position, pose.rotation), spring, completeTime, duration, toSubTrajectory);
+    public SubMovement AddSubMovement(PosRot pose, Vector2 spring, float completeTime, float duration, bool toSubTrajectory = false) {
+        return AddSubMovement(new Pose(pose.position, pose.rotation), spring, completeTime, duration, toSubTrajectory);
     }
 
     public void FixedUpdate() {
-		if (suspend) {
-			return;
-		}
+        if (suspend) {
+            return;
+        }
 
-		// ----- ----- ----- ----- -----
+        // ----- ----- ----- ----- -----
 
         float dt = Time.fixedDeltaTime;
 
         while (trajectory.Count() >= 2 && trajectory.First().t1 < currTime) {
             trajectory.Dequeue();
         }
-		while (subTrajectory.Count() >= 2 && subTrajectory.First().t1 < currTime) {
-			subTrajectory.Dequeue();
-		}
+        while (subTrajectory.Count() >= 2 && subTrajectory.First().t1 < currTime) {
+            subTrajectory.Dequeue();
+        }
+
+        // -----
+
+        if (visualize) {
+            while (trajectory.Count() > visualizers.Count) {
+                var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                go.GetComponent<Renderer>().material.color = Color.red;
+                go.transform.localScale = new Vector3(0.15f, 0.01f, 0.07f);
+                visualizers.Add(go);
+            }
+
+            for (int i = 0; i < visualizers.Count; i++) {
+                if (i < trajectory.Count()) {
+                    visualizers[i].SetActive(true);
+                    visualizers[i].transform.position = trajectory.ElementAt(i).p1;
+                    visualizers[i].transform.rotation = trajectory.ElementAt(i).q1;
+                } else {
+                    visualizers[i].SetActive(false);
+                }
+            }
+        }
 
         // ----- ----- ----- ----- -----
 
@@ -193,37 +219,48 @@ public class ReachController : MonoBehaviour {
         //     currTime += dt;
         // }
 
-		// ----- ----- ----- ----- -----
+        // ----- ----- ----- ----- -----
 
-		Pose subPose = new Pose();
-		subPose.position = subTrajectory.First().p0;
-		subPose.rotation = subTrajectory.First().q0;
-		foreach (var subMov in subTrajectory) {
-			Vector3 p; Quaternion q;
-			subMov.GetCurrentPose(currTime, out p, out q);
-			subPose.position = subPose.position + p;
-			subPose.rotation = q * subPose.rotation;
-		}
-			
-		// ----- ----- ----- ----- -----
+        Pose subPose = new Pose();
+        subPose.position = subTrajectory.First().p0;
+        subPose.rotation = subTrajectory.First().q0;
+        foreach (var subMov in subTrajectory) {
+            Vector3 p; Quaternion q;
+            subMov.GetCurrentPose(currTime, out p, out q);
+            subPose.position = subPose.position + p;
+            subPose.rotation = q * subPose.rotation;
+        }
 
-		if (currTime < trajectory.Last().t1 + 1.0f || currTime < subTrajectory.Last().t1 + 1.0f) {
-			currTime += dt;
-		}
+        // ----- ----- ----- ----- -----
+
+        if (currTime < trajectory.Last().t1 + 1.0f || currTime < subTrajectory.Last().t1 + 1.0f) {
+            currTime += dt;
+        }
 
         // ----- ----- ----- ----- -----
 
         // Move GameObject
         if (ikEndEffector == null || ikEndEffector.phIKEndEffector.IsPositionControlEnabled()) {
-			gameObject.transform.position = pose.position + subPose.position;
+            gameObject.transform.position = pose.position + subPose.position;
         }
         if (ikEndEffector == null || ikEndEffector.phIKEndEffector.IsOrientationControlEnabled()) {
-			gameObject.transform.rotation = subPose.rotation * pose.rotation;
+            gameObject.transform.rotation = subPose.rotation * pose.rotation;
         }
-            
+
         // Update Spring & Damper Value
         foreach (var bone in changeSpringDamperBones) {
             bone.SetSpringDamperInRatio(spring);
+        }
+
+        // ----- ----- ----- ----- -----
+
+        if (visualize) {
+            if (posVisualizer == null) {
+                posVisualizer = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                posVisualizer.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+                posVisualizer.GetComponent<Renderer>().material.color = Color.blue;
+            }
+            posVisualizer.transform.position = pose.position + subPose.position;
         }
     }
 }

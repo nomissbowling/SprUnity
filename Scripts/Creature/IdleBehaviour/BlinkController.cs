@@ -81,6 +81,8 @@ public class BlinkController : MonoBehaviour {
     }
 
     public void Action() {
+        if (timeFromBlink < 1.0f) { return; }
+
         blinkKey.Action();
 
         if (blinkTimer > 0.20f) {
