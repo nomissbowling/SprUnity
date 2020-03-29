@@ -26,6 +26,9 @@ namespace InteraWare {
         public Body body = null;
         public LookController lookController = null;
 
+        // <!!> 現実の人を注意対象にしない（背景物体をきょろきょろするだけ）モード
+        public bool ignoreHuman = false;
+
         // ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
         // Parameters
 
@@ -155,6 +158,9 @@ namespace InteraWare {
                 List<float> probs = new List<float>();
 
                 foreach (Person person in Person.persons) {
+                    // <!!> 現実の人を注意対象にしない（背景物体をきょろきょろするだけ）モード
+                    if (ignoreHuman && person.human) { continue; }
+
                     if (person.ignoredByAttention) { continue; }
                     if (!person.gameObject.activeInHierarchy) { continue; }
                     if (person != currentAttentionTarget) {
