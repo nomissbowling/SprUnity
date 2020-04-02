@@ -56,6 +56,13 @@ public class SubMovement {
         float r = (30 * Mathf.Pow(s, 2) - 60 * Mathf.Pow(s, 3) + 30 * Mathf.Pow(s, 4)) / 1.875f;
         return r;
     }
+
+    public float GetCurrentCompletion(float t) {
+        float s = (t - t0) / (t1 - t0);
+        float r = 10 * Mathf.Pow(s, 3) - 15 * Mathf.Pow(s, 4) + 6 * Mathf.Pow(s, 5);
+        return r;
+    }
+
 }
 
 // ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----

@@ -28,6 +28,8 @@ public class BlinkController : MonoBehaviour {
 
     public KeyFrame blinkKey = null;
 
+    public bool suspend = false;
+
     // ----- ----- ----- ----- -----
 
     private float timeFromBlink = 0;
@@ -81,11 +83,13 @@ public class BlinkController : MonoBehaviour {
     }
 
     public void Action() {
-        blinkKey.Action();
+        if (!suspend) {
+            blinkKey.Action();
 
-        if (blinkTimer > 0.20f) {
-            blinkTimer = 0;
-            timeFromBlink = 0;
+            if (blinkTimer > 0.20f) {
+                blinkTimer = 0;
+                timeFromBlink = 0;
+            }
         }
     }
 }
