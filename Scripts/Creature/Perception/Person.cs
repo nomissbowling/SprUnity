@@ -25,6 +25,8 @@ public class Person : MonoBehaviour {
     public GameObject head = null;
     public GameObject leftHand = null;
     public GameObject rightHand = null;
+    public GameObject leftElbow = null;
+    public GameObject rightElbow = null;
 
     // -- Facial Expression
     // <TBD>
